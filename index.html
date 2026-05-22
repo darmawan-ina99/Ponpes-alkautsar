@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Ponpes Al Kautsar | Pesantren Digital</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/parse@3.4.0/dist/parse.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-green: #0f6b4a;
+            --gold: #d4af37;
+            --gold-light: #f5e7b2;
+            --navy: #0a1f2e;
+            --cream: #fefaf0;
+            --text-sm: 0.75rem;
+            --text-base: 0.85rem;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #0b2b2a, #05161e);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #0a1f2e 0%, #0e2a3b 100%);
+            backdrop-filter: blur(4px);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            z-index: 20;
+            border-right: 2px solid var(--gold);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-area { padding: 1.2rem 1rem; text-align: center; border-bottom: 1px solid rgba(212,175,55,0.3); }
+        .logo-area i { font-size: 2rem; color: var(--gold); }
+        .logo-area h2 { font-size: 1rem; font-family: 'Playfair Display'; background: linear-gradient(135deg, #fff5dd, var(--gold-light)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-area p { font-size: 0.6rem; opacity: 0.7; }
+        .nav-menu { flex: 1; padding: 1rem 0; display: flex; flex-direction: column; gap: 0.2rem; overflow-y: auto; }
+        .nav-item-side {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 18px;
+            margin: 0 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: var(--text-sm);
+            color: #cddde9;
+            transition: 0.2s;
+        }
+        .nav-item-side i { width: 24px; font-size: 0.95rem; }
+        .nav-item-side span { font-size: var(--text-sm); font-weight: 500; }
+        .nav-item-side.active { background: var(--gold); color: var(--navy); }
+        .user-card { margin: 12px; padding: 8px 12px; background: rgba(255,255,245,0.1); border-radius: 24px; display: flex; align-items: center; gap: 8px; font-size: 0.7rem; }
+        .logout-side { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 4px 10px; border-radius: 30px; cursor: pointer; font-size: 0.65rem; }
+        /* MAIN CONTENT */
+        .main-content { margin-left: 260px; flex: 1; padding: 18px 22px; background: rgba(255,253,245,0.92); backdrop-filter: blur(4px); min-height: 100vh; }
+        /* Mobile bottom nav */
+        .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,31,46,0.96); backdrop-filter: blur(20px); border-top: 1px solid var(--gold); padding: 6px 4px 10px; overflow-x: auto; white-space: nowrap; z-index: 30; gap: 4px; justify-content: space-between; }
+        .mobile-nav-item { display: inline-flex; flex-direction: column; align-items: center; padding: 4px 8px; border-radius: 30px; color: #cddde9; font-size: 0.6rem; }
+        .mobile-nav-item i { font-size: 1.2rem; }
+        .mobile-nav-item.active { background: var(--gold); color: var(--navy); }
+        /* Page */
+        .page { display: none; animation: fade 0.2s; }
+        .page.active-page { display: block; }
+        @keyframes fade { from { opacity: 0; transform: translateY(5px);} to { opacity: 1; transform: translateY(0);} }
+        /* Card & Form */
+        .card { background: white; border-radius: 1.2rem; padding: 1rem; margin-bottom: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid rgba(212,175,55,0.3); }
+        .form-group { margin-bottom: 0.8rem; }
+        label { font-weight: 600; font-size: 0.7rem; display: block; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 8px 12px; font-size: 0.75rem; border: 1.5px solid #e2dccd; border-radius: 1rem; }
+        button { background: linear-gradient(105deg, var(--primary-green), #0a4a34); padding: 8px 16px; font-size: 0.75rem; border-radius: 2rem; font-weight: 600; color: white; border: none; cursor: pointer; }
+        .btn-gold { background: linear-gradient(105deg, var(--gold), #c99f1e); color: #0a1f2e; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #f0e6cf; }
+        th { background: var(--primary-green); color: var(--gold-light); font-size: 0.7rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 1.2rem; }
+        .stat-card { background: linear-gradient(145deg, #fff, #fef6e6); padding: 0.8rem; border-radius: 1rem; text-align: center; }
+        .stat-card h3 { font-size: 1.3rem; color: var(--primary-green); margin: 4px 0; }
+        .chat-box { background: #f8f5ed; border-radius: 1rem; height: 320px; overflow-y: auto; padding: 10px; margin-bottom: 10px; }
+        .message { margin-bottom: 10px; max-width: 85%; padding: 8px 12px; border-radius: 1rem; font-size: 0.75rem; }
+        .message-own { background: #2c3e50; color: white; margin-left: auto; border-bottom-right-radius: 4px; }
+        .message-other { background: var(--primary-green); color: white; border-bottom-left-radius: 4px; }
+        .chat-input-area { display: flex; gap: 8px; align-items: center; }
+        .chat-input-area textarea { flex: 1; border-radius: 2rem; font-size: 0.75rem; resize: none; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); position: fixed; width: 260px; }
+            .main-content { margin-left: 0; padding-bottom: 70px; }
+            .mobile-bottom-nav { display: flex; }
+            .menu-toggle { display: block; position: fixed; top: 12px; left: 12px; background: var(--gold); border-radius: 30px; padding: 6px 12px; z-index: 35; color: #0a1f2e; cursor: pointer; font-size: 0.8rem; }
+        }
+        .menu-toggle { display: none; }
+        /* Login Card Style */
+        .login-wrapper {
+            max-width: 420px;
+            width: 90%;
+            margin: 5vh auto;
+            background: rgba(255, 253, 245, 0.96);
+            border-radius: 2rem;
+            padding: 1.8rem 1.5rem;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            text-align: center;
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--gold);
+        }
+        .arabic-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.6rem;
+            color: var(--primary-green);
+            line-height: 1.4;
+            margin-bottom: 0.2rem;
+        }
+        .arabic-sub {
+            font-family: 'Amiri', serif;
+            font-size: 1.2rem;
+            color: var(--gold-dark);
+            margin-bottom: 0.5rem;
+        }
+        .indo-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin: 0.5rem 0 0.2rem;
+        }
+        .indo-location {
+            font-size: 0.8rem;
+            color: #5a6e5a;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed var(--gold);
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i> Menu</div>
+
+<!-- SIDEBAR (desktop) -->
+<div class="sidebar" id="sidebar">
+    <div class="logo-area">
+        <i class="fas fa-mosque"></i>
+        <h2>Qur'an Al-Kautsar</h2>
+        <p>Malanggah</p>
+    </div>
+    <div class="nav-menu" id="sidebarNav">
+        <div class="nav-item-side" data-page="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+        <div class="nav-item-side" data-page="dataSantri"><i class="fas fa-users"></i><span>Data Santri</span></div>
+        <div class="nav-item-side" data-page="rekapanSantri"><i class="fas fa-chart-pie"></i><span>Rekapan Santri</span></div>
+        <div class="nav-item-side" data-page="administrasiKeuangan"><i class="fas fa-coins"></i><span>Administrasi Keuangan</span></div>
+        <div class="nav-item-side" data-page="jadwalAbsensi"><i class="fas fa-calendar-check"></i><span>Jadwal & Absensi</span></div>
+        <div class="nav-item-side" data-page="manajemenKamar"><i class="fas fa-bed"></i><span>Manajemen Kamar</span></div>
+        <div class="nav-item-side" data-page="informasi"><i class="fas fa-info-circle"></i><span>Informasi</span></div>
+        <div class="nav-item-side" data-page="chat"><i class="fas fa-comment-dots"></i><span>Chat Santri</span></div>
+    </div>
+    <div class="user-card">
+        <i class="fas fa-user-circle fa-2x"></i>
+        <div style="flex:1"><span id="sideUserName"></span><br><small id="sideUserRole"></small></div>
+        <button class="logout-side" id="logoutBtnSide"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV (diisi JS) -->
+<div class="mobile-bottom-nav" id="mobileBottomNav"></div>
+
+<!-- MAIN CONTENT (halaman setelah login) -->
+<div class="main-content" id="mainContent">
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="page">
+        <h3 style="font-size:1rem;"><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+        <div class="stats-grid" id="dashStats">
+            <div class="stat-card"><i class="fas fa-user-graduate"></i><h3 id="totalSantriDash">0</h3><p>Total Santri</p></div>
+            <div class="stat-card"><i class="fas fa-hand-holding-heart"></i><h3 id="totalInfakDash">Rp 0</h3><p>Total Infak</p></div>
+            <div class="stat-card"><i class="fas fa-door-open"></i><h3 id="totalKamarDash">0</h3><p>Kamar</p></div>
+        </div>
+        <div class="card"><small>Selamat datang di sistem pesantren digital. Kelola semua aspek dengan mudah.</small></div>
+    </div>
+    <!-- Data Santri -->
+    <div id="dataSantriPage" class="page">
+        <div class="card"><h4><i class="fas fa-user-plus"></i> Tambah Santri</h4>
+            <div class="form-group"><label>Nama</label><input id="santriName" placeholder="Nama santri"></div>
+            <div class="form-group"><label>Username</label><input id="santriUsername" placeholder="username"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="santriPassword" placeholder="min 6"></div>
+            <div class="form-group"><label>Kamar</label><select id="santriKamarSelect"></select></div>
+            <button id="addSantriBtnData">Simpan Santri</button>
+        </div>
+        <div class="card"><h4>Daftar Santri</h4><div style="overflow-x:auto;"><table id="santriTable"><thead><tr><th>Nama</th><th>Username</th><th>Kamar</th><th>Aksi</th></tr></thead><tbody id="santriListBody"></tbody></table></div></div>
+    </div>
+    <!-- Rekapan Santri -->
+    <div id="rekapanSantriPage" class="page">
+        <div class="card"><h4>Statistik Santri per Kamar</h4><canvas id="chartSantriKamar" width="400" height="180" style="max-height:200px"></canvas></div>
+        <div class="card"><h4>Rekapitulasi Jumlah Santri</h4><div id="rekapanTable"></div></div>
+    </div>
+    <!-- Administrasi Keuangan -->
+    <div id="administrasiKeuanganPage" class="page">
+        <div class="card"><h4>Tambah Transaksi</h4>
+            <div class="form-group"><label>Jenis</label><select id="transaksiJenis"><option value="pemasukan">Pemasukan (Infak)</option><option value="pengeluaran">Pengeluaran</option></select></div>
+            <div class="form-group"><label>Deskripsi</label><input id="transaksiDeskripsi" placeholder="keterangan"></div>
+            <div class="form-group"><label>Nominal (Rp)</label><input type="number" id="transaksiNominal"></div>
+            <div class="form-group"><label>Tanggal</label><input type="date" id="transaksiTanggal"></div>
+            <button id="tambahTransaksiBtn">Simpan</button>
+        </div>
+        <div class="card"><h4>Riwayat Keuangan</h4><div style="overflow-x:auto"><table id="keuanganTable"><thead><tr><th>Tgl</th><th>Jenis</th><th>Deskripsi</th><th>Nominal</th></tr></thead><tbody id="keuanganBody"></tbody></table></div><p><strong>Saldo: <span id="saldoKeuangan">Rp 0</span></strong></p></div>
+    </div>
+    <!-- Jadwal & Absensi -->
+    <div id="jadwalAbsensiPage" class="page">
+        <div class="card"><h4>Buat Jadwal Baru</h4>
+            <div class="form-group"><label>Nama Kegiatan</label><input id="jadwalNama"></div>
+            <div class="form-group"><label>Waktu</label><input type="datetime-local" id="jadwalWaktu"></div>
+            <div class="form-group"><label>Lokasi</label><input id="jadwalLokasi"></div>
+            <button id="tambahJadwalBtn">Tambah Jadwal</button>
+        </div>
+        <div class="card"><h4>Daftar Jadwal</h4><div id="jadwalList"></div></div>
+        <div class="card"><h4>Absensi Santri</h4>
+            <div class="form-group"><label>Pilih Santri</label><select id="absensiSantriSelect"></select></div>
+            <div class="form-group"><label>Tanggal</label><input type="date" id="absensiTanggal"></div>
+            <button id="catatAbsenBtn">Catat Hadir</button>
+            <div id="absensiInfo"></div><h5>Riwayat Absensi</h5><div id="absensiRiwayat"></div>
+        </div>
+    </div>
+    <!-- Manajemen Kamar -->
+    <div id="manajemenKamarPage" class="page">
+        <div class="card"><h4>Tambah Kamar</h4>
+            <div class="form-group"><label>Nama Kamar</label><input id="kamarNama" placeholder="Mis: Al-Falah"></div>
+            <div class="form-group"><label>Kapasitas</label><input type="number" id="kamarKapasitas"></div>
+            <button id="tambahKamarBtn">Tambah Kamar</button>
+        </div>
+        <div class="card"><h4>Daftar Kamar & Penghuni</h4><div id="kamarListContainer"></div></div>
+    </div>
+    <!-- Informasi -->
+    <div id="informasiPage" class="page">
+        <div class="card"><h4>Buat Pengumuman</h4>
+            <div class="form-group"><label>Judul</label><input id="infoJudul"></div>
+            <div class="form-group"><label>Isi</label><textarea id="infoIsi" rows="2"></textarea></div>
+            <button id="tambahInfoBtn">Kirim Pengumuman</button>
+        </div>
+        <div class="card"><h4>Pengumuman Terbaru</h4><div id="infoList"></div></div>
+    </div>
+    <!-- Chat -->
+    <div id="chatPage" class="page">
+        <div class="card"><h4><i class="fas fa-comments"></i> Ruang Chat Santri & Pengurus</h4>
+            <div class="chat-box" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <textarea id="chatInput" placeholder="Tulis pesan ..."></textarea>
+                <button id="sendChatBtn">Kirim</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    Parse.initialize("PUkWc1q1w6G9LObKVAM8vaZysalll29RGM6hUsCN", "rYurvOuqkeJzJZfT1Tq1X5UmbSQHC6StID85xCu7");
+    Parse.serverURL = "https://parseapi.back4app.com/";
+    
+    let currentUser = null, currentRole = null;
+    let chatPollingInterval = null, lastMessageTime = null;
+    let chartInstance = null;
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});}
+    function isAdmin() { return currentRole === 'admin_murobbi' || currentRole === 'masul_mudarris'; }
+    
+    // ======================== NAVIGASI ========================
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(pageId+'Page').classList.add('active-page');
+        document.querySelectorAll('.nav-item-side').forEach(nav => {
+            if(nav.dataset.page === pageId) nav.classList.add('active');
+            else nav.classList.remove('active');
+        });
+        document.querySelectorAll('.mobile-nav-item').forEach(m => {
+            if(m.dataset.page === pageId) m.classList.add('active');
+            else m.classList.remove('active');
+        });
+        if(pageId === 'dashboard') loadDashboardStats();
+        if(pageId === 'dataSantri') loadSantriList();
+        if(pageId === 'rekapanSantri') loadRekapanSantri();
+        if(pageId === 'administrasiKeuangan') loadKeuangan();
+        if(pageId === 'jadwalAbsensi') { loadJadwal(); loadAbsensiSelect(); }
+        if(pageId === 'manajemenKamar') { loadKamarList(); loadKamarSelect(); }
+        if(pageId === 'informasi') loadInformasi();
+        if(pageId === 'chat') { if(chatPollingInterval) clearInterval(chatPollingInterval); startChatPolling(); }
+    }
+    
+    // ======================== DASHBOARD ========================
+    async function loadDashboardStats() {
+        const santriCount = await new Parse.Query(Parse.User).equalTo('role','wali_santri').count();
+        const Infak = Parse.Object.extend('Infak');
+        const allInfak = await new Parse.Query(Infak).find();
+        let totalInfak = 0; allInfak.forEach(i=>totalInfak+=i.get('nominal'));
+        const Kamar = Parse.Object.extend('Kamar');
+        const kamarCount = await new Parse.Query(Kamar).count();
+        document.getElementById('totalSantriDash').innerText = santriCount;
+        document.getElementById('totalInfakDash').innerHTML = `Rp ${totalInfak.toLocaleString()}`;
+        document.getElementById('totalKamarDash').innerText = kamarCount;
+    }
+    
+    // ======================== DATA SANTRI ========================
+    async function loadSantriList() {
+        const query = new Parse.Query(Parse.User);
+        query.equalTo('role','wali_santri');
+        query.include('kamar');
+        const santri = await query.find();
+        const kamarMap = new Map();
+        const kamars = await new Parse.Query('Kamar').find();
+        kamars.forEach(k => kamarMap.set(k.id, k.get('nama')));
+        const tbody = document.getElementById('santriListBody');
+        tbody.innerHTML = '';
+        for(let s of santri){
+            const kamarId = s.get('kamar') ? s.get('kamar').id : null;
+            const kamarNama = kamarId ? kamarMap.get(kamarId) || '-' : '-';
+            tbody.innerHTML += `<tr>
+                <td>${escapeHtml(s.get('name') || s.get('username'))}</td>
+                <td>${escapeHtml(s.get('username'))}</td>
+                <td>${escapeHtml(kamarNama)}</td>
+                <td>${isAdmin() ? `<button class="btn-gold" style="padding:2px 8px;font-size:0.65rem" onclick="deleteSantri('${s.id}')">Hapus</button>` : '-'}</td>
+            </tr>`;
+        }
+    }
+    window.deleteSantri = async (id) => {
+        if(!confirm('Hapus santri?')) return;
+        const user = new Parse.User(); user.id = id;
+        await user.destroy();
+        loadSantriList(); loadDashboardStats(); loadRekapanSantri();
+    };
+    document.getElementById('addSantriBtnData')?.addEventListener('click', async()=>{
+        const name = document.getElementById('santriName').value.trim();
+        const uname = document.getElementById('santriUsername').value.trim();
+        const pwd = document.getElementById('santriPassword').value;
+        const kamarId = document.getElementById('santriKamarSelect').value;
+        if(!name || !uname || !pwd) return alert('Lengkapi data');
+        if(pwd.length<6) return alert('Password min 6');
+        const user = new Parse.User();
+        user.set('username',uname); user.set('password',pwd); user.set('name',name); user.set('role','wali_santri');
+        if(kamarId) user.set('kamar', {__type:'Pointer', className:'Kamar', objectId:kamarId});
+        await user.signUp();
+        alert('Santri ditambahkan');
+        document.getElementById('santriName').value=''; document.getElementById('santriUsername').value=''; document.getElementById('santriPassword').value='';
+        loadSantriList(); loadDashboardStats(); loadRekapanSantri();
+    });
+    async function loadKamarSelect(){
+        const kamars = await new Parse.Query('Kamar').find();
+        const select = document.getElementById('santriKamarSelect');
+        if(select) { select.innerHTML = '<option value="">-- Tanpa Kamar --</option>'; kamars.forEach(k => { select.innerHTML += `<option value="${k.id}">${escapeHtml(k.get('nama'))}</option>`; }); }
+    }
+    
+    // ======================== REKAPAN SANTRI ========================
+    async function loadRekapanSantri() {
+        const kamars = await new Parse.Query('Kamar').find();
+        const santris = await new Parse.Query(Parse.User).equalTo('role','wali_santri').include('kamar').find();
+        const countMap = new Map();
+        kamars.forEach(k => countMap.set(k.id, 0));
+        santris.forEach(s => { if(s.get('kamar')) { const kid = s.get('kamar').id; countMap.set(kid, (countMap.get(kid)||0)+1); } });
+        const labels = [], data = [];
+        for(let k of kamars){ labels.push(k.get('nama')); data.push(countMap.get(k.id)||0); }
+        if(chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('chartSantriKamar').getContext('2d');
+        chartInstance = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Jumlah Santri', data, backgroundColor: '#d4af37' }] }, options: { responsive: true, maintainAspectRatio: true } });
+        let html = '材料<table class="admin-table"><tr><th>Kamar</th><th>Jumlah Santri</th></tr>';
+        kamars.forEach(k => { html += `<tr><td>${escapeHtml(k.get('nama'))}</td><td>${countMap.get(k.id)||0}</td></tr>`; });
+        html += '</table>';
+        document.getElementById('rekapanTable').innerHTML = html;
+    }
+    
+    // ======================== KEUANGAN ========================
+    const Keuangan = Parse.Object.extend('Keuangan');
+    async function loadKeuangan() {
+        const trans = await new Parse.Query(Keuangan).descending('tanggal').find();
+        let saldo = 0;
+        const tbody = document.getElementById('keuanganBody');
+        tbody.innerHTML = '';
+        for(let t of trans){
+            const nominal = t.get('nominal');
+            if(t.get('jenis') === 'pemasukan') saldo += nominal; else saldo -= nominal;
+            tbody.innerHTML += `<tr><td>${new Date(t.get('tanggal')).toLocaleDateString()}</td><td>${t.get('jenis')}</td><td>${escapeHtml(t.get('deskripsi'))}</td><td>Rp ${nominal.toLocaleString()}</td></tr>`;
+        }
+        document.getElementById('saldoKeuangan').innerHTML = `Rp ${saldo.toLocaleString()}`;
+    }
+    document.getElementById('tambahTransaksiBtn')?.addEventListener('click', async()=>{
+        const jenis = document.getElementById('transaksiJenis').value;
+        const deskripsi = document.getElementById('transaksiDeskripsi').value.trim();
+        const nominal = parseInt(document.getElementById('transaksiNominal').value);
+        const tanggal = document.getElementById('transaksiTanggal').value;
+        if(!deskripsi || isNaN(nominal) || !tanggal) return alert('Lengkapi data');
+        const keu = new Keuangan();
+        keu.set('jenis',jenis); keu.set('deskripsi',deskripsi); keu.set('nominal',nominal); keu.set('tanggal',new Date(tanggal));
+        await keu.save();
+        alert('Tersimpan'); loadKeuangan();
+    });
+    
+    // ======================== JADWAL & ABSENSI ========================
+    const Jadwal = Parse.Object.extend('Jadwal');
+    const Absensi = Parse.Object.extend('Absensi');
+    async function loadJadwal(){
+        const jadwals = await new Parse.Query(Jadwal).descending('waktu').find();
+        let html = '<ul style="margin-left:1rem; font-size:0.75rem;">';
+        for(let j of jadwals) html += `<li><strong>${escapeHtml(j.get('nama'))}</strong> - ${new Date(j.get('waktu')).toLocaleString()} (${escapeHtml(j.get('lokasi'))})</li>`;
+        html += '</ul>';
+        document.getElementById('jadwalList').innerHTML = html;
+    }
+    document.getElementById('tambahJadwalBtn')?.addEventListener('click', async()=>{
+        const nama = document.getElementById('jadwalNama').value.trim();
+        const waktu = document.getElementById('jadwalWaktu').value;
+        const lokasi = document.getElementById('jadwalLokasi').value.trim();
+        if(!nama || !waktu) return alert('Isi nama dan waktu');
+        const jadwal = new Jadwal();
+        jadwal.set('nama',nama); jadwal.set('waktu',new Date(waktu)); jadwal.set('lokasi',lokasi);
+        await jadwal.save();
+        alert('Jadwal ditambahkan'); loadJadwal();
+    });
+    async function loadAbsensiSelect(){
+        const santri = await new Parse.Query(Parse.User).equalTo('role','wali_santri').find();
+        const select = document.getElementById('absensiSantriSelect');
+        select.innerHTML = '';
+        santri.forEach(s => { select.innerHTML += `<option value="${s.id}">${escapeHtml(s.get('name'))}</option>`; });
+    }
+    document.getElementById('catatAbsenBtn')?.addEventListener('click', async()=>{
+        const santriId = document.getElementById('absensiSantriSelect').value;
+        const tanggal = document.getElementById('absensiTanggal').value;
+        if(!santriId || !tanggal) return alert('Pilih santri dan tanggal');
+        const absen = new Absensi();
+        absen.set('santriId', santriId); absen.set('tanggal', new Date(tanggal)); absen.set('status','hadir');
+        await absen.save();
+        alert('Absensi dicatat');
+        const query = new Parse.Query(Absensi); query.equalTo('santriId', santriId);
+        const absenList = await query.find();
+        let html = '<ul style="font-size:0.7rem">';
+        for(let a of absenList) html += `<li>${new Date(a.get('tanggal')).toLocaleDateString()} - Hadir</li>`;
+        html += '</ul>';
+        document.getElementById('absensiRiwayat').innerHTML = html;
+    });
+    
+    // ======================== KAMAR ========================
+    const Kamar = Parse.Object.extend('Kamar');
+    async function loadKamarList(){
+        const kamars = await new Parse.Query(Kamar).find();
+        const santris = await new Parse.Query(Parse.User).equalTo('role','wali_santri').include('kamar').find();
+        const container = document.getElementById('kamarListContainer');
+        container.innerHTML = '';
+        for(let k of kamars){
+            const penghuni = santris.filter(s => s.get('kamar') && s.get('kamar').id === k.id);
+            let html = `<div class="card" style="margin-bottom:0.8rem;"><h5>🏠 ${escapeHtml(k.get('nama'))} (Kapasitas: ${k.get('kapasitas')})</h5><ul style="font-size:0.7rem; margin-left:1rem;">`;
+            penghuni.forEach(p => html += `<li>${escapeHtml(p.get('name'))}</li>`);
+            html += `</ul>${isAdmin() ? `<button class="btn-gold" style="margin-top:6px;" onclick="hapusKamar('${k.id}')">Hapus Kamar</button>` : ''}</div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+    }
+    window.hapusKamar = async(id) => { if(confirm('Hapus kamar?')){ const k = new Kamar(); k.id=id; await k.destroy(); loadKamarList(); loadRekapanSantri(); loadKamarSelect(); } };
+    document.getElementById('tambahKamarBtn')?.addEventListener('click', async()=>{
+        const nama = document.getElementById('kamarNama').value.trim();
+        const kapasitas = parseInt(document.getElementById('kamarKapasitas').value);
+        if(!nama || isNaN(kapasitas)) return alert('Isi nama dan kapasitas');
+        const kamar = new Kamar();
+        kamar.set('nama',nama); kamar.set('kapasitas',kapasitas);
+        await kamar.save();
+        alert('Kamar ditambahkan'); loadKamarList(); loadRekapanSantri(); loadKamarSelect();
+    });
+    
+    // ======================== INFORMASI ========================
+    const Info = Parse.Object.extend('Informasi');
+    async function loadInformasi(){
+        const infos = await new Parse.Query(Info).descending('createdAt').find();
+        const container = document.getElementById('infoList');
+        container.innerHTML = '';
+        infos.forEach(i=>{ container.innerHTML += `<div class="card" style="margin-bottom:0.7rem;"><h5>📢 ${escapeHtml(i.get('judul'))}</h5><p style="font-size:0.75rem;">${escapeHtml(i.get('isi'))}</p><small>${new Date(i.createdAt).toLocaleString()}</small></div>`; });
+    }
+    document.getElementById('tambahInfoBtn')?.addEventListener('click', async()=>{
+        const judul = document.getElementById('infoJudul').value.trim();
+        const isi = document.getElementById('infoIsi').value.trim();
+        if(!judul || !isi) return alert('Lengkapi');
+        const info = new Info();
+        info.set('judul',judul); info.set('isi',isi);
+        await info.save();
+        alert('Pengumuman dikirim'); loadInformasi();
+    });
+    
+    // ======================== CHAT ========================
+    async function startChatPolling() {
+        if(chatPollingInterval) clearInterval(chatPollingInterval);
+        await loadChatMessages();
+        chatPollingInterval = setInterval(loadNewMessages, 3000);
+    }
+    async function loadChatMessages() {
+        const Message = Parse.Object.extend('Message');
+        const query = new Parse.Query(Message).ascending('createdAt').limit(200);
+        const messages = await query.find();
+        displayMessages(messages);
+        if(messages.length) lastMessageTime = messages[messages.length-1].createdAt;
+    }
+    async function loadNewMessages() {
+        if(!lastMessageTime) return;
+        const Message = Parse.Object.extend('Message');
+        const query = new Parse.Query(Message).greaterThan('createdAt', lastMessageTime).ascending('createdAt');
+        const newMessages = await query.find();
+        if(newMessages.length) {
+            newMessages.forEach(msg => appendMessageModern(msg));
+            lastMessageTime = newMessages[newMessages.length-1].createdAt;
+        }
+    }
+    function displayMessages(messages) {
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        messages.forEach(msg => appendMessageToContainer(msg, container));
+        container.scrollTop = container.scrollHeight;
+    }
+    function appendMessageModern(msg) {
+        const container = document.getElementById('chatMessages');
+        appendMessageToContainer(msg, container);
+        container.scrollTop = container.scrollHeight;
+    }
+    function appendMessageToContainer(msg, container) {
+        const currentUsername = Parse.User.current()?.get('username');
+        const isOwn = (msg.get('username') === currentUsername);
+        const div = document.createElement('div');
+        div.className = `message ${isOwn ? 'message-own' : 'message-other'}`;
+        const waktu = new Date(msg.createdAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+        div.innerHTML = `<strong>${escapeHtml(msg.get('username'))}</strong> <small>${waktu}</small><br>${escapeHtml(msg.get('text'))}`;
+        container.appendChild(div);
+    }
+    document.getElementById('sendChatBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('chatInput')?.addEventListener('keypress', (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if(!text) return;
+        const user = Parse.User.current();
+        const Message = Parse.Object.extend('Message');
+        const msg = new Message();
+        msg.set('username', user.get('username'));
+        msg.set('text', text);
+        await msg.save();
+        input.value = '';
+    }
+    
+    // ======================== LOGIN & INIT ========================
+    async function initAfterLogin(user){
+        currentUser = user; currentRole = user.get('role');
+        document.getElementById('sideUserName').innerText = user.get('name') || user.get('username');
+        document.getElementById('sideUserRole').innerText = currentRole === 'admin_murobbi' ? 'Admin' : (currentRole==='masul_mudarris'?'Masul':'Santri');
+        const adminMode = isAdmin();
+        const addButtons = ['addSantriBtnData','tambahKamarBtn','tambahJadwalBtn','tambahTransaksiBtn','tambahInfoBtn','catatAbsenBtn'];
+        addButtons.forEach(id => { let btn = document.getElementById(id); if(btn) btn.style.display = adminMode ? 'block' : 'none'; });
+        loadDashboardStats(); loadSantriList(); loadKamarSelect(); loadKamarList(); loadRekapanSantri(); loadKeuangan(); loadJadwal(); loadInformasi();
+        showPage('dashboard');
+    }
+    
+    // Setup Mobile & Sidebar
+    const sideItems = document.querySelectorAll('.nav-item-side');
+    sideItems.forEach(item => { item.addEventListener('click',()=>{ showPage(item.dataset.page); if(window.innerWidth<=768) document.getElementById('sidebar').style.transform='translateX(-100%)'; }); });
+    const mobileContainer = document.getElementById('mobileBottomNav');
+    const menuList = ['dashboard','dataSantri','rekapanSantri','administrasiKeuangan','jadwalAbsensi','manajemenKamar','informasi','chat'];
+    const icons = ['tachometer-alt','users','chart-pie','coins','calendar-check','bed','info-circle','comment-dots'];
+    const labels = ['Dashboard','Santri','Rekapan','Keuangan','Jadwal','Kamar','Info','Chat'];
+    menuList.forEach((p,i)=>{
+        const div = document.createElement('div');
+        div.className = 'mobile-nav-item';
+        div.dataset.page = p;
+        div.innerHTML = `<i class="fas fa-${icons[i]}"></i><span>${labels[i]}</span>`;
+        div.addEventListener('click',()=> showPage(p));
+        mobileContainer.appendChild(div);
+    });
+    document.getElementById('menuToggle')?.addEventListener('click',()=>{ const s=document.getElementById('sidebar'); s.style.transform = s.style.transform==='translateX(0px)'?'translateX(-100%)':'translateX(0px)'; });
+    window.addEventListener('resize',()=>{ if(window.innerWidth>768) document.getElementById('sidebar').style.transform='translateX(0px)'; });
+    document.getElementById('logoutBtnSide')?.addEventListener('click',async()=>{ await Parse.User.logOut(); location.reload(); });
+    
+    // TAMPILAN LOGIN DENGAN TEKS ARAB & INDONESIA
+    (async ()=>{
+        const user = Parse.User.current();
+        if(user) await initAfterLogin(user);
+        else {
+            document.body.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background: radial-gradient(circle at 10% 20%, #0b2b2a, #05161e);">
+                <div class="login-wrapper">
+                    <div class="arabic-title">مركز لتحفيظ القرآن الكوثر</div>
+                    <div class="arabic-sub">ملانجاح</div>
+                    <div class="indo-title">Pondok Pesantren Tahfidzil Qur'an Al-Kautsar</div>
+                    <div class="indo-location">Malanggah</div>
+                    <i class="fas fa-mosque" style="font-size: 2rem; color: var(--gold); margin: 0.5rem 0;"></i>
+                    <div style="margin-top: 1rem;">
+                        <input type="text" id="loginUser" placeholder="Username" style="width:100%; padding:10px; margin-bottom:12px; border-radius:40px; border:1px solid #e2dccd;">
+                        <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:16px; border-radius:40px; border:1px solid #e2dccd;">
+                        <button id="loginBtn" style="width:100%;">Masuk</button>
+                        <p style="margin-top: 16px; font-size:0.7rem;"><a href="#" id="regLink" style="color:var(--primary-green);">Daftar Baru (hubungi admin)</a></p>
+                        <div id="loginMsg" style="color:#b91c1c; font-size:0.7rem; margin-top:8px;"></div>
+                    </div>
+                </div>
+            </div>`;
+            document.getElementById('loginBtn').onclick = async()=>{
+                try {
+                    await Parse.User.logIn(document.getElementById('loginUser').value, document.getElementById('loginPass').value);
+                    location.reload();
+                } catch(e){ document.getElementById('loginMsg').innerText = e.message; }
+            };
+            document.getElementById('regLink').onclick = (e)=>{ e.preventDefault(); alert('Silakan hubungi admin pesantren untuk pendaftaran akun.'); };
+        }
+    })();
+</script>
+</body>
+  </html>
